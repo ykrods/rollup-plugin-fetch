@@ -1,0 +1,23 @@
+{
+  "name": "rollup-plugin-fetch",
+  "version": "0.0.1",
+  "description": "fetch resources via https",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ykrods/rollup-plugin-fetch.git"
+  },
+  "keywords": [
+    "rollup"
+  ],
+  "author": "ykrods",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ykrods/rollup-plugin-fetch/issues"
+  },
+  "homepage": "https://github.com/ykrods/rollup-plugin-fetch#readme"
+}
