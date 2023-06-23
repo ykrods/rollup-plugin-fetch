@@ -13,8 +13,15 @@ export async function getIntegrity(file, algorithm = "sha384") {
   return `${algorithm}-${digest}`;
 };
 
+export async function checkIntegrity(dest, integrity) {
+  const algorithm = integrity.split("-")[0];
+  const actual = await getIntegrity(dest, algorithm);
+  if (integrity !== actual) {
+    throw new Error(`[rollup-plugin-fetch] integrity mismatch: dest=${dest} integrity=${integrity}, actual=${actual}`);
+  }
+}
 
-export async function download(url, dest, fetchOptions = {}) {
+export async function download(url, dest, fetchOptions = {}, integrity = undefined) {
   const response = await new Promise((resolve, reject) => {
     https.get(url, fetchOptions, (response) => {
       if (response.statusCode === 200) {
@@ -30,35 +37,47 @@ export async function download(url, dest, fetchOptions = {}) {
     response,
     fs.createWriteStream(dest)
   );
-  console.log(`[rollup-plugin-fetch] ${url} downloaded to ${dest}`);
+
+  // integrity check
+  if (integrity) {
+    checkIntegrity(dest, integrity);
+  }
 }
 
 
 export async function cacheAvailable(dest, integrity = undefined) {
-  try {
-    const stats = await fs.promises.stat(dest);
-    if (stats.isFile()) {
-      if (integrity) {
-        const algorithm = hash.split("-")[0];
-        const i = await getIntegrity(dest, algorithm);
-        if (integrity === i) {
-          console.log(`[rollup-plugin-fetch] ${dest} cache available`);
-          return true;
-        } else {
-          console.log("Integrity doesn't match");
-          return false;
-        }
+  const exists = async (dest) => {
+    try {
+      const stats = await fs.promises.stat(dest);
+      if (stats.isFile()) {
+        return true;
+      } else {
+        throw new Error(`${dest} is not file.`);
       }
-      console.log(`[rollup-plugin-fetch] ${dest} cache available`);
-      return true;
-    } else {
-      throw new Error(`${dest} already exists`);
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        return false;
+      } else {
+        throw error;
+      }
     }
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      return false;
-    } else {
-      throw error;
-    }
+  };
+
+  if (!(await exists(dest))) {
+    // no cache exists
+    return false;
+  }
+
+  if (!integrity) {
+    // skip integrity check
+    return true;
+  }
+
+  // integrity check
+  try {
+    checkIntegrity(dest, integrity);
+  } catch(error) {
+    console.error(error);
+    return false;
   }
 }
