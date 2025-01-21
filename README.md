@@ -10,10 +10,12 @@ plugins: [
   // ...
 
   fetch({
-    targets: {
-      url: "https://example.org/foo.png",
-      dest: "dist/resources/foo.png"
-    },
+    targets: [
+      {
+        url: "https://example.org/foo.png",
+        dest: "dist/resources/foo.png"
+      },
+    ],
   }),
 ]
 ```
